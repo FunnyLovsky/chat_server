@@ -7,10 +7,10 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors({
-    credentials: true,
     origin: [
         'http://localhost:5173',
     ],
+    methods: ['GET', 'POST']
 }));
 app.use(express.json());
 
@@ -39,7 +39,7 @@ app.get('/messages', (req, res) => {
     if (!res.headersSent) { 
       res.json({  });
     }
-  }, 30000);
+  }, 10000);
 
 
   req.on('close', () => {
