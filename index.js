@@ -1,64 +1,25 @@
 
-const express = require('express');
-const cors = require('cors')
 
-const app = express();
+const WebSocket = require("ws");
 
-const PORT = process.env.PORT || 3000;
+const port = process.env.PORT || 8080;
 
-app.use(cors({
-    origin: [
-        'http://localhost:5173',
-    ],
-    methods: ['GET', 'POST']
-}));
-app.use(express.json());
+const server = new WebSocket.Server({ port });
 
-let messages= [];
-let clients = [];
+server.on("connection", (socket) => {
+  console.log("Новое соединение");
 
-app.post('/message', (req, res) => {
-  const  message = req.body;
-  messages.push(message);
+  socket.on("message", (message) => {
+    server.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(message);
+      }
+    });
+  });
 
-  clients.forEach(client => client.res.json( message ));
-  clients = [];
-
-  res.status(200).send();
-});
-
-app.get('/messages', (req, res) => {
-    const client = { res };
-    clients.push(client);
-
-  const timeoutId = setTimeout(() => {
-    const index = clients.indexOf(client);
-    if (index !== -1) {
-      clients.splice(index, 1);
-    }
-    if (!res.headersSent) { 
-      res.json({  });
-    }
-  }, 10000);
-
-
-  req.on('close', () => {
-    clearTimeout(timeoutId);
-    const index = clients.indexOf(client);
-    if (index !== -1) {
-      clients.splice(index, 1);
-    }
+  socket.on("close", () => {
+    console.log("Соединение закрыто");
   });
 });
 
-
-const start = () => {
-    try {
-        app.listen(PORT, () => console.log('Server start in port: ' + PORT))
-    } catch (error) {
-        console.log(error)
-    }
-}
-
-
-start()
+console.log("WebSocket сервер запущен на порту 8080");
